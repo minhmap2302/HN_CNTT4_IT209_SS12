@@ -1,0 +1,103 @@
+# =============================================================================
+# Bài 3: Tách biệt luồng CI/CD đa môi trường (Staging & Production)
+#         với GitHub Environments
+# =============================================================================
+# Workflow này triển khai ứng dụng lên 2 môi trường:
+#   - Staging  : kích hoạt khi push vào nhánh develop
+#   - Production: kích hoạt khi push vào nhánh main (yêu cầu phê duyệt)
+# =============================================================================
+
+name: CD Multi-Environment Deployment
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+
+jobs:
+  # =====================================================================
+  # Job 1: Deploy to Staging
+  # Chỉ chạy khi push vào nhánh develop
+  # =====================================================================
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+    environment:
+      name: staging
+      url: https://api.staging.example.com
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Display deployment info
+        run: |
+          echo "=========================================="
+          echo "  DEPLOYING TO STAGING ENVIRONMENT"
+          echo "=========================================="
+          echo "Branch : ${{ github.ref_name }}"
+          echo "Commit : ${{ github.sha }}"
+          echo "Actor  : ${{ github.actor }}"
+          echo "Time   : $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "=========================================="
+
+      - name: Simulate staging deployment
+        run: |
+          echo "🚀 Starting deployment to Staging..."
+          echo "📦 Building application..."
+          sleep 2
+          echo "🔄 Deploying to staging server..."
+          sleep 2
+          echo "✅ Deployment to Staging completed successfully!"
+
+      - name: Run smoke tests
+        run: |
+          echo "🧪 Running smoke tests on Staging..."
+          sleep 1
+          echo "✅ All smoke tests passed!"
+
+  # =====================================================================
+  # Job 2: Deploy to Production
+  # Chỉ chạy khi push vào nhánh main
+  # Yêu cầu phê duyệt thủ công (Required reviewers) trước khi deploy
+  # =====================================================================
+  deploy-prod:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://api.prod.example.com
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Display deployment info
+        run: |
+          echo "=========================================="
+          echo "  DEPLOYING TO PRODUCTION ENVIRONMENT"
+          echo "=========================================="
+          echo "Branch : ${{ github.ref_name }}"
+          echo "Commit : ${{ github.sha }}"
+          echo "Actor  : ${{ github.actor }}"
+          echo "Time   : $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          echo "=========================================="
+
+      - name: Simulate production deployment
+        run: |
+          echo "🚀 Starting deployment to Production..."
+          echo "📦 Building application for production..."
+          sleep 2
+          echo "🔄 Deploying to production server..."
+          sleep 3
+          echo "✅ Deployment to Production completed successfully!"
+
+      - name: Run production health check
+        run: |
+          echo "🏥 Running health check on Production..."
+          sleep 1
+          echo "✅ Production health check passed!"
+          echo "🎉 Production deployment is live!"
